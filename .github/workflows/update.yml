@@ -1,0 +1,39 @@
+name: Update Taiko Map Data
+
+on:
+  schedule:
+    - cron: "0 18 * * *"  # 毎日 日本時間 03:00（UTC+0 基準）
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install requests beautifulsoup4
+
+      - name: Fetch shop data
+        run: |
+          python scripts/fetch.py
+
+      - name: Build JSON
+        run: |
+          python scripts/build.py
+
+      - name: Commit and push if changed
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add .
+          git diff --cached --quiet || git commit -m "Auto update shop data"
+          git push
