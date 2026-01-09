@@ -22,6 +22,19 @@ jobs:
         run: |
           pip install requests beautifulsoup4
           pip install selenium
+          
+      - name: Install Google Chrome
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y google-chrome-stable
+          
+      - name: Install ChromeDriver
+        run: |
+          CHROME_VERSION=$(google-chrome --version | grep -oP '\d+')
+          wget -q "https://storage.googleapis.com/chrome-for-testing-public/${CHROME_VERSION}.0.0/linux64/chromedriver-linux64.zip"
+          unzip chromedriver-linux64.zip
+          sudo mv chromedriver-linux64/chromedriver /usr/local/bin/
+          sudo chmod +x /usr/local/bin/chromedriver
 
       - name: Fetch shop data
         run: |
