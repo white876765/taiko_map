@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<title>太鼓の達人 設置店舗マップ</title>
+
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.css"/>
+<link rel="stylesheet" href="https://unpkg.com/leaflet.markercluster@1.5.3/dist/MarkerCluster.Default.css"/>
+
+<style>
+html, body {
+  height: 100%;
+  margin: 0;
+}
+#map {
+  width: 100%;
+  height: 100%;
+}
+
+#searchBox {
+  width: 100%;
+  padding: 4px 12px 4px 6px;
+  box-sizing: border-box;
+}
+
+#controls {
+  position: absolute;
+  top: 10px;
+  left: 50px;
+  z-index: 1000;
+  background: white;
+  padding: 8px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  font-size: 13px;
+}
+
+#controls button {
+  margin: 2px 4px 4px 0;
+  padding: 2px 6px;
+  font-size: 12px;
+}
+
+#stats {
+  margin-top: 6px;
+  font-weight: bold;
+}
+
+.legend {
+  position: absolute;
+  bottom: 20px;
+  left: 10px;
+  background: white;
+  padding: 8px 10px;
+  border-radius: 6px;
+  box-shadow: 0 2px 6px rgba(0,0,0,.2);
+  font-size: 12px;
+  line-height: 1.4;
+}
+.legend-item {
+  white-space: nowrap;
+}
+
+.mobile-only {
+  display: none;
+}
+
+@media (max-width: 768px) {
+  #controls {
+    display: none;
+    max-width: 90vw;
+  }
+  .mobile-only {
+    display: block;
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    z-index: 1100;
+    padding: 6px 10px;
+    background: white;
+    border-radius: 6px;
+    box-shadow: 0 2px 6px rgba(0,0,0,.3);
+  }
+}
+
+@media (max-width: 768px) {
+  .legend {
+    font-size: 10px;
+    padding: 4px 6px;
+  }
+}
+
+</style>
+</head>
+
+<body>
+
+<button id="toggleControls" class="mobile-only">
+  フィルタ
+</button>
+<div id="controls">
+  <input
+    type="text"
+    id="searchBox"
+    placeholder="店舗名で検索"
+    style="width: 100%; margin-bottom: 6px; padding: 4px;"
+  >
+
+  <strong>台数フィルタ</strong><br>
+
+  <button id="selectAll">全選択</button>
+  <button id="clearAll">全解除</button>
+  <br><br>
+
+  <label><input type="checkbox" class="machineFilter" value="1"> 1台</label><br>
+  <label><input type="checkbox" class="machineFilter" value="2"> 2台</label><br>
+  <label><input type="checkbox" class="machineFilter" value="3"> 3台</label><br>
+  <label><input type="checkbox" class="machineFilter" value="4"> 4台</label><br>
+  <label><input type="checkbox" class="machineFilter" value="5"> 5台</label><br>
+  <label><input type="checkbox" class="machineFilter" value="6-7"> 6–7台</label><br>
+  <label><input type="checkbox" class="machineFilter" value="8-9"> 8–9台</label><br>
+  <label><input type="checkbox" class="machineFilter" value="10+"> 10台以上</label>
+
+  <div id="stats"></div>
+
+  <hr>
+  <strong>都道府県</strong><br>
+
+  <select id="prefFilter">
+    <option value="ALL">すべて</option>
+  </select>
+</div>
+
+<div class="legend">
+  <strong>凡例（台数）</strong>
+  <div class="legend-item">1–2台</div>
+  <div class="legend-item">3–5台</div>
+  <div class="legend-item">6–9台</div>
+  <div class="legend-item">10台以上</div>
+</div>
+
+<div id="map"></div>
+
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+
+<script>
+const map = L.map("map").setView([36.5, 138], 5);
+
+map.on("popupopen", e => {
+  map.panTo(e.popup.getLatLng(), { animate: true });
+});
+
+L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+  attribution: "&copy; OpenStreetMap contributors"
+}).addTo(map);
+
+// クラスタグループ
+const cluster = L.markerClusterGroup({
+  disableClusteringAtZoom: 16  // 最大ズームでは全ピン表示
+});
+map.addLayer(cluster);
+
+let originalShops = [];
+const PREF_ORDER = [
+  "北海道",
+  "青森県","岩手県","宮城県","秋田県","山形県","福島県",
+  "茨城県","栃木県","群馬県","埼玉県","千葉県","東京都","神奈川県",
+  "新潟県","富山県","石川県","福井県","山梨県","長野県",
+  "岐阜県","静岡県","愛知県","三重県",
+  "滋賀県","京都府","大阪府","兵庫県","奈良県","和歌山県",
+  "鳥取県","島根県","岡山県","広島県","山口県",
+  "徳島県","香川県","愛媛県","高知県",
+  "福岡県","佐賀県","長崎県","熊本県","大分県","宮崎県","鹿児島県",
+  "沖縄県"
+];
+
+function getSearchKeyword() {
+  return document
+    .getElementById("searchBox")
+    .value
+    .trim()
+    .toLowerCase();
+}
+
+function getSelectedFilters() {
+  return Array.from(
+    document.querySelectorAll(".machineFilter:checked")
+  ).map(cb => cb.value);
+}
+
+function getSelectedPref() {
+  return document.getElementById("prefFilter").value;
+}
+
+function matchMachineFilter(machines, filters) {
+  if (filters.length === 0) return true;
+  if (machines == null) return false;
+
+  for (const f of filters) {
+    if (f === "1" && machines === 1) return true;
+    if (f === "2" && machines === 2) return true;
+    if (f === "3" && machines === 3) return true;
+    if (f === "4" && machines === 4) return true;
+    if (f === "5" && machines === 5) return true;
+    if (f === "6-7" && machines >= 6 && machines <= 7) return true;
+    if (f === "8-9" && machines >= 8 && machines <= 9) return true;
+    if (f === "10+" && machines >= 10) return true;
+  }
+  return false;
+}
+
+function clearMarkers() {
+  cluster.clearLayers();
+}
+
+function renderMap() {
+  clearMarkers();
+
+  const machineFilters = getSelectedFilters();
+  const selectedPref = getSelectedPref();
+  const keyword = getSearchKeyword();
+
+  let count = 0;
+  let totalMachines = 0;
+
+  // bounds 用
+  const bounds = [];
+
+  originalShops.forEach(shop => {
+    if (shop.lat == null || shop.lng == null) return;
+
+    // 都道府県フィルタ
+    if (selectedPref !== "ALL" && shop.pref !== selectedPref) return;
+
+    // 台数フィルタ
+    if (!matchMachineFilter(shop.machines, machineFilters)) return;
+
+    // 店舗名検索（部分一致）
+    if (keyword && !shop.name.toLowerCase().includes(keyword)) return;
+
+    const isMobile = window.innerWidth < 768;
+
+    const popupHtml = isMobile
+      ? `<strong>${shop.name}</strong><br>${shop.machines ?? "?"}台`
+      : `<strong>${shop.name}</strong><br>${shop.address}<br>${shop.machines ?? "?"}台`;
+
+    const marker = L.marker([shop.lat, shop.lng]).bindPopup(popupHtml);
+
+    cluster.addLayer(marker);
+
+    bounds.push([shop.lat, shop.lng]);
+
+    count++;
+    totalMachines += shop.machines ?? 0;
+  });
+
+  document.getElementById("stats").textContent =
+    `表示店舗数: ${count} / 台数合計: ${totalMachines}`;
+
+  // 自動ズーム処理
+  if (selectedPref !== "ALL" && bounds.length > 0) {
+    map.fitBounds(bounds, {
+      padding: [30, 30],
+      maxZoom: 15
+    });
+  }
+  if (selectedPref === "ALL") {
+    map.setView([36.5, 138], 5);
+  }
+
+}
+
+
+
+// イベント
+document.querySelectorAll(".machineFilter").forEach(cb => {
+  cb.addEventListener("change", renderMap);
+});
+
+document.getElementById("selectAll").addEventListener("click", () => {
+  document.querySelectorAll(".machineFilter").forEach(cb => cb.checked = true);
+  renderMap();
+});
+
+document.getElementById("clearAll").addEventListener("click", () => {
+  document.querySelectorAll(".machineFilter").forEach(cb => cb.checked = false);
+  renderMap();
+});
+
+document.getElementById("searchBox").addEventListener("input", renderMap);//検索
+document.getElementById("prefFilter").addEventListener("change", renderMap);//都道府県
+document.getElementById("toggleControls").addEventListener("click", () => {//台数
+  const c = document.getElementById("controls");
+  c.style.display = c.style.display === "none" ? "block" : "none";
+});
+
+
+// JSON読み込み
+fetch("shops_japan_all.json")
+  .then(r => r.json())
+  .then(data => {
+    originalShops = data.shops;
+
+    // pref を住所から生成
+    originalShops.forEach(shop => {
+      if (!shop.pref && shop.address) {
+        shop.pref = shop.address.split(" ")[0];
+      }
+    });
+
+    // 実際に存在する都道府県だけ抽出
+    const existingPrefs = new Set(originalShops.map(s => s.pref));
+
+    const prefSelect = document.getElementById("prefFilter");
+
+    PREF_ORDER.forEach(pref => {
+      if (!existingPrefs.has(pref)) return;
+
+      const opt = document.createElement("option");
+      opt.value = pref;
+      opt.textContent = pref;
+      prefSelect.appendChild(opt);
+    });
+
+    renderMap();
+  });
+
+</script>
+
+</body>
+</html>
