@@ -12,7 +12,10 @@ import re
 BASE = "https://essential-truth-92204.appspot.com/S12"
 
 options = Options()
-options.add_argument("--headless")
+options.add_argument("--headless=new")
+options.add_argument("--no-sandbox")
+options.add_argument("--disable-dev-shm-usage")
+
 driver = webdriver.Chrome(options=options)
 
 shops = []
@@ -75,3 +78,4 @@ with open("shops.json", "w", encoding="utf-8") as f:
     json.dump({"shops": shops}, f, ensure_ascii=False, indent=2)
 
 print("完了:", len(shops), "店舗")
+
