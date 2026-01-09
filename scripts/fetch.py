@@ -3,6 +3,8 @@ from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.chrome.service import Service
+from webdriver_manager.chrome import ChromeDriverManager
 from urllib.parse import urlparse, parse_qs
 from html import unescape
 import time
@@ -15,7 +17,7 @@ options = Options()
 options.add_argument("--headless=new")
 options.add_argument("--no-sandbox")
 options.add_argument("--disable-dev-shm-usage")
-
+service = Service(ChromeDriverManager().install())
 driver = webdriver.Chrome(options=options)
 
 shops = []
@@ -78,4 +80,5 @@ with open("shops.json", "w", encoding="utf-8") as f:
     json.dump({"shops": shops}, f, ensure_ascii=False, indent=2)
 
 print("完了:", len(shops), "店舗")
+
 
