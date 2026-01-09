@@ -107,7 +107,7 @@ document.getElementById("toggleControls").onclick = () => {
 };
 
 // ===== JSON 読み込み =====
-fetch("shops_japan_all.json")
+fetch("shops.json")
   .then(r => r.json())
   .then(data => {
     originalShops = data.shops;
@@ -129,3 +129,4 @@ fetch("shops_japan_all.json")
 
     renderMap();
   });
+
