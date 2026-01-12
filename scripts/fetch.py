@@ -7,6 +7,7 @@ from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from urllib.parse import urlparse, parse_qs
 from html import unescape
+from datetime import date
 import time
 import json
 import re
@@ -33,72 +34,6 @@ os.makedirs(DATA_DIR, exist_ok=True)
 # 前回分を退避
 if os.path.exists(LATEST):
     shutil.copy(LATEST, PREV)
-
-for i in range(1, 48):
-    area = f"JP-{i:02}"
-    list_url = f"{BASE}/list?area={area}"
-    print("取得中:", area)
-
-    soup = BeautifulSoup(requests.get(list_url).text, "html.parser")
-
-    for dt in soup.find_all("dt"):
-        a = dt.find("a")
-        if not a:
-            continue
-
-        name = a.text.strip()
-        detail_url = BASE + "/" + a["href"].lstrip("./")
-
-        address = machines = None
-        for sib in dt.find_next_siblings():
-            if sib.name == "dt":
-                break   # 次の店舗に入ったら終了
-
-            if sib.name == "dd":
-                if "address" in sib.get("class", []):
-                    address = sib.text.strip()
-
-                if "count" in sib.get("class", []):
-                    m = re.search(r"\d+", sib.text)
-                    machines = int(m.group()) if m else None
-
-        # ---- Seleniumで座標取得 ----
-        lat = lng = None
-        driver.get(detail_url)
-        time.sleep(2)
-
-        try:
-            iframe = driver.find_element(By.ID, "gmap")
-            src = unescape(iframe.get_attribute("src"))
-            qs = parse_qs(urlparse(src).query)
-            lat, lng = map(float, qs["q"][0].split(","))
-        except:
-            pass
-
-        shops.append({
-            "name": name,
-            "address": address,
-            "machines": machines,
-            "lat": lat,
-            "lng": lng,
-            "area": area
-        })
-
-        print(f"  {name} | {machines}台 | {lat},{lng}")
-
-driver.quit()
-
-with open("shops.json", "w", encoding="utf-8") as f:
-    json.dump({"shops": shops}, f, ensure_ascii=False, indent=2)
-
-print("完了:", len(shops), "店舗")
-
-# 差分取得
-prev_shops = load_shops(PREV)
-curr_shops = shops
-
-added, removed, machine_changed = diff_shops(prev_shops, curr_shops)
-
 
 def load_shops(path):
     if not os.path.exists(path):
@@ -183,4 +118,83 @@ def write_summary(added, removed, machine_changed):
 
     print(summary_text)
 
+def write_diff_json(added, removed, machine_changed):
+    diff = {
+        "date": date.today().isoformat(),
+        "has_update": bool(added or removed or machine_changed),
+        "added": added,
+        "machine_changed": machine_changed
+    }
+
+    with open("diff.json", "w", encoding="utf-8") as f:
+        json.dump(diff, f, ensure_ascii=False, indent=2)
+
+
+for i in range(1, 48):
+    area = f"JP-{i:02}"
+    list_url = f"{BASE}/list?area={area}"
+    print("取得中:", area)
+
+    soup = BeautifulSoup(requests.get(list_url).text, "html.parser")
+
+    for dt in soup.find_all("dt"):
+        a = dt.find("a")
+        if not a:
+            continue
+
+        name = a.text.strip()
+        detail_url = BASE + "/" + a["href"].lstrip("./")
+
+        address = machines = None
+        for sib in dt.find_next_siblings():
+            if sib.name == "dt":
+                break   # 次の店舗に入ったら終了
+
+            if sib.name == "dd":
+                if "address" in sib.get("class", []):
+                    address = sib.text.strip()
+
+                if "count" in sib.get("class", []):
+                    m = re.search(r"\d+", sib.text)
+                    machines = int(m.group()) if m else None
+
+        # ---- Seleniumで座標取得 ----
+        lat = lng = None
+        driver.get(detail_url)
+        time.sleep(2)
+
+        try:
+            iframe = driver.find_element(By.ID, "gmap")
+            src = unescape(iframe.get_attribute("src"))
+            qs = parse_qs(urlparse(src).query)
+            lat, lng = map(float, qs["q"][0].split(","))
+        except:
+            pass
+
+        shops.append({
+            "name": name,
+            "address": address,
+            "machines": machines,
+            "lat": lat,
+            "lng": lng,
+            "area": area
+        })
+
+        print(f"  {name} | {machines}台 | {lat},{lng}")
+
+driver.quit()
+
+with open("shops.json", "w", encoding="utf-8") as f:
+    json.dump({"shops": shops}, f, ensure_ascii=False, indent=2)
+
+print("完了:", len(shops), "店舗")
+
+# 差分取得
+prev_shops = load_shops(PREV)
+curr_shops = shops
+
+added, removed, machine_changed = diff_shops(prev_shops, curr_shops)
+
+write_summary(added, removed, machine_changed)
+write_diff_json(added, removed, machine_changed)
 
