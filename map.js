@@ -27,6 +27,31 @@ const cluster = L.markerClusterGroup({
 });
 map.addLayer(cluster);
 
+const normalIcon = new L.Icon.Default();
+
+const addedIcon = L.icon({
+  iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/green-dot.png",
+  iconSize: [24, 24],
+  iconAnchor: [12, 24],
+  popupAnchor: [0, -20]
+});
+
+const changedIcon = L.icon({
+  iconUrl: "https://maps.gstatic.com/mapfiles/ms2/micons/orange-dot.png",
+  iconSize: [24, 24],
+  iconAnchor: [12, 24],
+  popupAnchor: [0, -20]
+});
+
+const addedIds = new Set(
+  diffInfo?.added.map(s => s.id) || []
+);
+
+const changedIds = new Set(
+  diffInfo?.machine_changed.map(s => s.id) || []
+);
+
+
 // ===== フィルタ系 =====
 function getSelectedFilters() {
   return [...document.querySelectorAll(".machineFilter:checked")].map(c => c.value);
@@ -65,10 +90,21 @@ function renderMap() {
     if (!matchMachineFilter(shop.machines, filters)) return;
     if (keyword && !shop.name.toLowerCase().includes(keyword)) return;
 
-    const marker = L.marker([shop.lat, shop.lng])
-      .bindPopup(`<strong>${shop.name}</strong><br>${shop.address}<br>${shop.machines}台`);
+    let icon = normalIcon;
 
+    if (addedIds.has(shop.id)) {
+      icon = addedIcon;
+    } else if (changedIds.has(shop.id)) {
+      icon = changedIcon;
+    }
+
+    const marker = L.marker([shop.lat, shop.lng], { icon }).bindPopup(`<strong>${shop.name}</strong><br>${shop.address}<br>${shop.machines}台`);
     cluster.addLayer(marker);
+
+    // const marker = L.marker([shop.lat, shop.lng])
+    //   .bindPopup(`<strong>${shop.name}</strong><br>${shop.address}<br>${shop.machines}台`);
+
+    // cluster.addLayer(marker);
     bounds.push([shop.lat, shop.lng]);
 
     count++;
@@ -107,7 +143,7 @@ document.getElementById("toggleControls").onclick = () => {
 };
 
 // ===== JSON 読み込み =====
-fetch("shops.json")
+fetch("shops_japan_all.json")
   .then(r => r.json())
   .then(data => {
     originalShops = data.shops;
@@ -128,5 +164,29 @@ fetch("shops.json")
     });
 
     renderMap();
+  });
+
+let diffInfo = null;
+
+fetch("diff.json")
+  .then(r => r.json())
+  .then(d => {
+    diffInfo = d;
+
+    if (d.has_update) {
+      document.getElementById("updateNotice").style.display = "block";
+
+      const lines = [];
+      if (d.added.length > 0) {
+        lines.push(`追加店舗: ${d.added.length}`);
+      }
+      if (d.machine_changed.length > 0) {
+        lines.push(`台数変更: ${d.machine_changed.length}`);
+      }
+
+      document.getElementById("updateDetails").textContent =
+        lines.join(" / ");
+      document.getElementById("updateDetails").style.display = "block";
+    }
   });
 
