@@ -141,33 +141,6 @@ function renderUpdateList(title, items, renderLine) {
   return html;
 }
 
-const html = [];
-
-html.push(`<strong>🟢 追加 ${d.added.length}件 / 🟡 変更 ${d.machine_changed.length}件</strong>`);
-
-html.push(renderUpdateList(
-  "🟢 追加店舗",
-  d.added,
-  s => `【${s.pref ?? "不明"}】${s.name}（${s.machines ?? "?"}台）`
-));
-
-html.push(renderUpdateList(
-  "🟡 台数変更",
-  d.machine_changed,
-  s => `【${s.pref ?? "不明"}】${s.name}：${s.before ?? "?"} → ${s.after ?? "?"}`
-));
-
-details.innerHTML = html.join("");
-
-details.querySelectorAll(".update-toggle").forEach(toggle => {
-  toggle.onclick = () => {
-    const list = toggle.nextElementSibling;
-    const open = list.style.display === "block";
-    list.style.display = open ? "none" : "block";
-    toggle.textContent = open ? "▶ 表示する" : "▼ 閉じる";
-  };
-});
-
 // ===== イベント =====
 document.querySelectorAll(".machineFilter").forEach(cb =>
   cb.addEventListener("change", renderMap)
@@ -230,24 +203,50 @@ fetch("diff.json")
 
       notice.style.display = "block";
 
-      const lines = [];
-      if (d.added?.length > 0) {
-        lines.push(`🟢 追加店舗: ${d.added.length}`);
-      }
-      if (d.machine_changed?.length > 0) {
-        lines.push(`🟡 台数変更: ${d.machine_changed.length}`);
-      }
+      const html = [];
 
-      details.textContent = lines.join(" / ");
+      // ▼ サマリー
+      html.push(
+        `<strong>🟢 追加 ${d.added?.length ?? 0}件 / 🟡 変更 ${d.machine_changed?.length ?? 0}件</strong>`
+      );
+
+      // ▼ 追加店舗一覧
+      html.push(renderUpdateList(
+        "🟢 追加店舗",
+        d.added,
+        s => `【${s.pref ?? "不明"}】${s.name}（${s.machines ?? "?"}台）`
+      ));
+
+      // ▼ 台数変更一覧
+      html.push(renderUpdateList(
+        "🟡 台数変更",
+        d.machine_changed,
+        s => `【${s.pref ?? "不明"}】${s.name}：${s.before ?? "?"} → ${s.after ?? "?"}`
+      ));
+
+      details.innerHTML = html.join("");
       details.style.display = "block";
+
+      // ▼ 折りたたみ動作
+      details.querySelectorAll(".update-toggle").forEach(t => {
+        t.onclick = () => {
+          const list = t.nextElementSibling;
+          const open = list.style.display === "block";
+          list.style.display = open ? "none" : "block";
+          t.textContent = open
+            ? t.textContent.replace("▼", "▶")
+            : t.textContent.replace("▶", "▼");
+        };
+      });
     }
 
-    renderMap(); // ← diff反映後に再描画
+    renderMap(); // ← diff反映後
   })
   .catch(() => {
-    // diff.json が無い初回用
     console.log("diff.json not found");
     renderMap();
   });
+
+
 
 
