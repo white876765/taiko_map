@@ -141,23 +141,6 @@ function renderUpdateList(title, items, renderLine) {
   return html;
 }
 
-function closeMobileUI() {
-  // フィルタ
-  const controls = document.getElementById("controls");
-  if (window.innerWidth < 768 && controls) {
-    controls.style.display = "none";
-  }
-
-  // 更新店舗一覧
-  const details = document.getElementById("updateDetails");
-  const toggle = document.getElementById("updateToggle");
-
-  if (details && details.style.display === "block") {
-    details.style.display = "none";
-    if (toggle) toggle.textContent = "▶ 表示する";
-  }
-}
-
 map.on("click", () => {
   closeMobileUI();
 });
@@ -167,6 +150,42 @@ map.on("click", () => {
   if (!el) return;
   el.addEventListener("click", e => e.stopPropagation());
 });
+
+function disableMapInteraction() {
+  map.dragging.disable();
+  map.touchZoom.disable();
+  map.doubleClickZoom.disable();
+  map.scrollWheelZoom.disable();
+  map.boxZoom.disable();
+  map.keyboard.disable();
+}
+
+function enableMapInteraction() {
+  map.dragging.enable();
+  map.touchZoom.enable();
+  map.doubleClickZoom.enable();
+  map.scrollWheelZoom.enable();
+  map.boxZoom.enable();
+  map.keyboard.enable();
+}
+
+function closeMobileUI() {
+  if (window.innerWidth >= 768) return;
+
+  const controls = document.getElementById("controls");
+  if (controls && controls.style.display === "block") {
+    controls.style.display = "none";
+  }
+
+  const details = document.getElementById("updateDetails");
+  const toggle = document.getElementById("updateToggle");
+  if (details && details.style.display === "block") {
+    details.style.display = "none";
+    if (toggle) toggle.textContent = "▶ 表示する";
+  }
+
+  enableMapInteraction();
+}
 
 // ===== イベント =====
 document.querySelectorAll(".machineFilter").forEach(cb =>
@@ -184,9 +203,17 @@ document.getElementById("clearAll").onclick = () => {
   renderMap();
 };
 
-document.getElementById("toggleControls").onclick = () => {
+document.getElementById("toggleControls").onclick = e => {
+  e.stopPropagation(); // 地図クリックに伝播させない
+
   const c = document.getElementById("controls");
-  c.style.display = c.style.display === "none" ? "block" : "none";
+  const open = c.style.display === "block";
+
+  c.style.display = open ? "none" : "block";
+
+  if (window.innerWidth < 768) {
+    open ? enableMapInteraction() : disableMapInteraction();
+  }
 };
 
 document.getElementById("updateDetails").onclick = () => {
@@ -197,6 +224,20 @@ document.getElementById("updateDetails").onclick = () => {
 
   list.style.display = opened ? "none" : "block";
   header.textContent = opened ? "▶ 表示する" : "▼ 閉じる";
+};
+
+document.getElementById("updateToggle").onclick = e => {
+  e.stopPropagation();
+
+  const details = document.getElementById("updateDetails");
+  const open = details.style.display === "block";
+
+  details.style.display = open ? "none" : "block";
+  e.target.textContent = open ? "▶ 表示する" : "▼ 閉じる";
+
+  if (window.innerWidth < 768) {
+    open ? enableMapInteraction() : disableMapInteraction();
+  }
 };
 
 // ===== JSON 読み込み =====
@@ -287,5 +328,6 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
