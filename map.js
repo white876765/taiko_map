@@ -207,57 +207,56 @@ fetch("diff.json")
     addedIds = new Set((d.added || []).map(s => s.id));
     changedIds = new Set((d.machine_changed || []).map(s => s.id));
 
-    if (d.has_update) {
-      const notice = document.getElementById("updateNotice");
-      const details = document.getElementById("updateDetails");
+    if (!d.has_update) return;
 
-      notice.style.display = "block";
+    const notice = document.getElementById("updateNotice");
+    const summary = document.getElementById("updateSummary");
+    const details = document.getElementById("updateDetails");
+    const toggle = document.getElementById("updateToggle");
 
-      const html = [];
+    notice.style.display = "block";
 
-      // ▼ サマリー
-      html.push(
-        `<strong>🟢 追加 ${d.added?.length ?? 0}件 / 🟡 変更 ${d.machine_changed?.length ?? 0}件</strong>`
-      );
+    // サマリーは常に表示
+    const lines = [];
+    if (d.added?.length) lines.push(`🟢 追加 ${d.added.length}件`);
+    if (d.machine_changed?.length) lines.push(`🟡 変更 ${d.machine_changed.length}件`);
+    summary.textContent = lines.join(" / ");
 
-      // ▼ 追加店舗一覧
-      html.push(renderUpdateList(
-        "🟢 追加店舗",
-        d.added,
-        s => `【${s.pref ?? "不明"}】${s.name}（${s.machines ?? "?"}台）`
-      ));
+    // 一覧HTML生成
+    const html = [];
 
-      // ▼ 台数変更一覧
-      html.push(renderUpdateList(
-        "🟡 台数変更",
-        d.machine_changed,
-        s => `【${s.pref ?? "不明"}】${s.name}：${s.before ?? "?"} → ${s.after ?? "?"}`
-      ));
-
-      details.innerHTML = html.join("");
-      details.style.display = "block";
-
-      // ▼ 折りたたみ動作
-      details.querySelectorAll(".update-toggle").forEach(t => {
-        t.onclick = () => {
-          const list = t.nextElementSibling;
-          const open = list.style.display === "block";
-          list.style.display = open ? "none" : "block";
-          t.textContent = open
-            ? t.textContent.replace("▼", "▶")
-            : t.textContent.replace("▶", "▼");
-        };
+    if (d.added?.length) {
+      html.push("<strong>🟢 追加店舗</strong><ul>");
+      d.added.forEach(s => {
+        html.push(
+          `<li>【${s.pref ?? "不明"}】${s.name}（${s.machines ?? "?"}台）</li>`
+        );
       });
+      html.push("</ul>");
     }
 
-    renderMap(); // ← diff反映後
+    if (d.machine_changed?.length) {
+      html.push("<strong>🟡 台数変更</strong><ul>");
+      d.machine_changed.forEach(s => {
+        html.push(
+          `<li>【${s.pref ?? "不明"}】${s.name}：${s.before ?? "?"} → ${s.after ?? "?"}</li>`
+        );
+      });
+      html.push("</ul>");
+    }
+
+    details.innerHTML = html.join("");
+
+    // トグル動作（ここが重要）
+    toggle.onclick = () => {
+      const open = details.style.display === "block";
+      details.style.display = open ? "none" : "block";
+      toggle.textContent = open ? "▶ 表示する" : "▼ 閉じる";
+    };
+
+    renderMap();
   })
   .catch(() => {
     console.log("diff.json not found");
     renderMap();
   });
-
-
-
-
-
