@@ -155,7 +155,6 @@ for i in range(1, 48):
 
         name = a.text.strip()
         detail_url = BASE + "/" + a["href"].lstrip("./")
-        pref = extract_pref(address)
 
         address = machines = None
         for sib in dt.find_next_siblings():
@@ -177,6 +176,7 @@ for i in range(1, 48):
 
         try:
             iframe = driver.find_element(By.ID, "gmap")
+            pref = extract_pref(address)
             src = unescape(iframe.get_attribute("src"))
             qs = parse_qs(urlparse(src).query)
             lat, lng = map(float, qs["q"][0].split(","))
@@ -214,4 +214,5 @@ added, removed, machine_changed = diff_shops(prev_shops, curr_shops)
 
 write_summary(added, removed, machine_changed)
 write_diff_json(added, removed, machine_changed)
+
 
