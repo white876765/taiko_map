@@ -162,6 +162,16 @@ document.getElementById("toggleControls").onclick = () => {
   c.style.display = c.style.display === "none" ? "block" : "none";
 };
 
+document.getElementById("updateDetails").onclick = () => {
+  const list = document.getElementById("updateList");
+  const header = document.getElementById("updateDetails");
+
+  const opened = list.style.display === "block";
+
+  list.style.display = opened ? "none" : "block";
+  header.textContent = opened ? "▶ 表示する" : "▼ 閉じる";
+};
+
 // ===== JSON 読み込み =====
 fetch("data/shops_latest.json")
   .then(r => r.json())
@@ -246,6 +256,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
