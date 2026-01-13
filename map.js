@@ -141,6 +141,33 @@ function renderUpdateList(title, items, renderLine) {
   return html;
 }
 
+function closeMobileUI() {
+  // フィルタ
+  const controls = document.getElementById("controls");
+  if (window.innerWidth < 768 && controls) {
+    controls.style.display = "none";
+  }
+
+  // 更新店舗一覧
+  const details = document.getElementById("updateDetails");
+  const toggle = document.getElementById("updateToggle");
+
+  if (details && details.style.display === "block") {
+    details.style.display = "none";
+    if (toggle) toggle.textContent = "▶ 表示する";
+  }
+}
+
+map.on("click", () => {
+  closeMobileUI();
+});
+
+["controls", "updateNotice"].forEach(id => {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener("click", e => e.stopPropagation());
+});
+
 // ===== イベント =====
 document.querySelectorAll(".machineFilter").forEach(cb =>
   cb.addEventListener("change", renderMap)
@@ -260,4 +287,5 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
