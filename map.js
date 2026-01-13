@@ -12,6 +12,7 @@ const PREF_ORDER = [
 ];
 
 let originalShops = [];
+let diffInfo = null;
 
 // ===== Map 初期化 =====
 const map = L.map("map", { zoomControl: false }).setView([36.5, 138], 5);
@@ -166,8 +167,6 @@ fetch("shops_japan_all.json")
     renderMap();
   });
 
-let diffInfo = null;
-
 fetch("diff.json")
   .then(r => r.json())
   .then(d => {
@@ -189,4 +188,5 @@ fetch("diff.json")
       document.getElementById("updateDetails").style.display = "block";
     }
   });
+
 
