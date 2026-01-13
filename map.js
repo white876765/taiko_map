@@ -162,29 +162,39 @@ fetch("data/shops_latest.json")
   });
 
 fetch("diff.json")
-  .then(r => r.json())
+  .then(r => {
+    if (!r.ok) throw new Error("no diff");
+    return r.json();
+  })
   .then(d => {
     diffInfo = d;
 
-    addedIds = new Set(d.added.map(s => s.id));
-    changedIds = new Set(d.machine_changed.map(s => s.id));
+    addedIds = new Set((d.added || []).map(s => s.id));
+    changedIds = new Set((d.machine_changed || []).map(s => s.id));
 
     if (d.has_update) {
-      document.getElementById("updateNotice").style.display = "block";
+      const notice = document.getElementById("updateNotice");
+      const details = document.getElementById("updateDetails");
+
+      notice.style.display = "block";
 
       const lines = [];
-      if (d.added.length > 0) lines.push(`追加店舗: ${d.added.length}`);
-      if (d.machine_changed.length > 0) lines.push(`台数変更: ${d.machine_changed.length}`);
+      if (d.added?.length > 0) {
+        lines.push(`🟢 追加店舗: ${d.added.length}`);
+      }
+      if (d.machine_changed?.length > 0) {
+        lines.push(`🟡 台数変更: ${d.machine_changed.length}`);
+      }
 
-      document.getElementById("updateDetails").textContent = lines.join(" / ");
-      document.getElementById("updateDetails").style.display = "block";
+      details.textContent = lines.join(" / ");
+      details.style.display = "block";
     }
 
+    renderMap(); // ← diff反映後に再描画
+  })
+  .catch(() => {
+    // diff.json が無い初回用
+    console.log("diff.json not found");
     renderMap();
   });
-
-
-
-
-
 
