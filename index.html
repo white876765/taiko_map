@@ -134,33 +134,32 @@ html, body {
   border-radius:6px;
   padding:8px 10px;
   font-size:13px;
-  max-width:280px;
+  max-width:300px;
   box-shadow:0 2px 6px rgba(0,0,0,.2);
 ">
   <strong>📢 本日更新あり</strong>
 
-  <!-- トグルヘッダ -->
+  <!-- サマリー -->
+  <div id="updateSummary" style="margin-top:6px;"></div>
+
+  <!-- トグル -->
   <div
-    id="updateDetails"
-    style="
-      margin-top:6px;
-      cursor:pointer;
-      font-weight:bold;
-      user-select:none;
-    "
+    id="updateToggle"
+    style="margin-top:6px; cursor:pointer; color:#007bff;"
   >
     ▶ 表示する
   </div>
 
-  <!-- 一覧（初期は非表示） -->
+  <!-- 一覧 -->
   <div
-    id="updateList"
+    id="updateDetails"
     style="
       display:none;
       margin-top:6px;
-      max-height:260px;
+      max-height:200px;
       overflow-y:auto;
-      padding-right:4px;
+      border-top:1px solid #ddd;
+      padding-top:6px;
     "
   ></div>
 </div>
@@ -174,6 +173,7 @@ html, body {
 
 </body>
 </html>
+
 
 
 
