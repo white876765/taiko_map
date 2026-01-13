@@ -47,6 +47,8 @@ const changedIcon = L.icon({
 let addedIds = new Set();
 let changedIds = new Set();
 
+const MAX_SHOW = 20;
+
 // ===== フィルタ系 =====
 function getSelectedFilters() {
   return [...document.querySelectorAll(".machineFilter:checked")].map(c => c.value);
@@ -115,6 +117,56 @@ function renderMap() {
     map.setView([36.5, 138], 5);
   }
 }
+
+function renderUpdateList(title, items, renderLine) {
+  if (!items || items.length === 0) return "";
+
+  const visible = items.slice(0, MAX_SHOW);
+  const hiddenCount = items.length - visible.length;
+
+  let html = `<div><strong>${title}</strong></div>`;
+  html += `<div class="update-toggle">▶ 表示する</div>`;
+  html += `<div class="update-list">`;
+  html += `<ul style="margin:4px 0 6px 16px;padding:0;">`;
+
+  visible.forEach(i => {
+    html += `<li>${renderLine(i)}</li>`;
+  });
+
+  if (hiddenCount > 0) {
+    html += `<li>…他 ${hiddenCount} 件</li>`;
+  }
+
+  html += `</ul></div>`;
+  return html;
+}
+
+const html = [];
+
+html.push(`<strong>🟢 追加 ${d.added.length}件 / 🟡 変更 ${d.machine_changed.length}件</strong>`);
+
+html.push(renderUpdateList(
+  "🟢 追加店舗",
+  d.added,
+  s => `【${s.pref ?? "不明"}】${s.name}（${s.machines ?? "?"}台）`
+));
+
+html.push(renderUpdateList(
+  "🟡 台数変更",
+  d.machine_changed,
+  s => `【${s.pref ?? "不明"}】${s.name}：${s.before ?? "?"} → ${s.after ?? "?"}`
+));
+
+details.innerHTML = html.join("");
+
+details.querySelectorAll(".update-toggle").forEach(toggle => {
+  toggle.onclick = () => {
+    const list = toggle.nextElementSibling;
+    const open = list.style.display === "block";
+    list.style.display = open ? "none" : "block";
+    toggle.textContent = open ? "▶ 表示する" : "▼ 閉じる";
+  };
+});
 
 // ===== イベント =====
 document.querySelectorAll(".machineFilter").forEach(cb =>
@@ -197,4 +249,5 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
