@@ -35,6 +35,12 @@ os.makedirs(DATA_DIR, exist_ok=True)
 if os.path.exists(LATEST):
     shutil.copy(LATEST, PREV)
 
+def extract_pref(address):
+    if not address:
+        return None
+    m = re.match(r"(北海道|.{2,3}県|東京都|大阪府|京都府)", address)
+    return m.group(1) if m else None
+
 def load_shops(path):
     if not os.path.exists(path):
         return []
@@ -59,6 +65,7 @@ def diff_shops(prev, curr):
                 machine_changed.append({
                     "id": shop_id,
                     "name": curr_shop["name"],
+                    "pref": curr_shop.get("pref"),
                     "before": prev_shop.get("machines"),
                     "after": curr_shop.get("machines")
                 })
@@ -123,12 +130,16 @@ def write_diff_json(added, removed, machine_changed):
         "date": date.today().isoformat(),
         "has_update": bool(added or removed or machine_changed),
         "added": added,
+        "removed": removed,
         "machine_changed": machine_changed
     }
+
 
     with open("diff.json", "w", encoding="utf-8") as f:
         json.dump(diff, f, ensure_ascii=False, indent=2)
 
+def make_shop_id(shop):
+    return f"{shop['pref']}|{shop['name']}|{shop['lat']}|{shop['lng']}"
 
 for i in range(1, 48):
     area = f"JP-{i:02}"
@@ -144,6 +155,7 @@ for i in range(1, 48):
 
         name = a.text.strip()
         detail_url = BASE + "/" + a["href"].lstrip("./")
+        pref = extract_pref(address)
 
         address = machines = None
         for sib in dt.find_next_siblings():
@@ -172,8 +184,10 @@ for i in range(1, 48):
             pass
 
         shops.append({
+            "id": None,  # 後で付与
             "name": name,
             "address": address,
+            "pref": pref,
             "machines": machines,
             "lat": lat,
             "lng": lng,
@@ -184,7 +198,10 @@ for i in range(1, 48):
 
 driver.quit()
 
-with open("shops.json", "w", encoding="utf-8") as f:
+for shop in shops:
+    shop["id"] = make_shop_id(shop)
+
+with open(LATEST, "w", encoding="utf-8") as f:
     json.dump({"shops": shops}, f, ensure_ascii=False, indent=2)
 
 print("完了:", len(shops), "店舗")
