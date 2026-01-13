@@ -216,13 +216,13 @@ fetch("diff.json")
 
     notice.style.display = "block";
 
-    // サマリーは常に表示
+    // --- サマリー ---
     const lines = [];
     if (d.added?.length) lines.push(`🟢 追加 ${d.added.length}件`);
-    if (d.machine_changed?.length) lines.push(`🟡 変更 ${d.machine_changed.length}件`);
+    if (d.machine_changed?.length) lines.push(`🟡 台数変更 ${d.machine_changed.length}件`);
     summary.textContent = lines.join(" / ");
 
-    // 一覧HTML生成
+    // --- 一覧（省略なし・全件表示） ---
     const html = [];
 
     if (d.added?.length) {
@@ -247,7 +247,7 @@ fetch("diff.json")
 
     details.innerHTML = html.join("");
 
-    // トグル動作（ここが重要）
+    // --- トグル（ここだけで制御） ---
     toggle.onclick = () => {
       const open = details.style.display === "block";
       details.style.display = open ? "none" : "block";
@@ -260,3 +260,4 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
