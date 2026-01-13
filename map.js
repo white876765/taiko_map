@@ -44,14 +44,8 @@ const changedIcon = L.icon({
   popupAnchor: [0, -20]
 });
 
-const addedIds = new Set(
-  diffInfo?.added.map(s => s.id) || []
-);
-
-const changedIds = new Set(
-  diffInfo?.machine_changed.map(s => s.id) || []
-);
-
+let addedIds = new Set();
+let changedIds = new Set();
 
 // ===== フィルタ系 =====
 function getSelectedFilters() {
@@ -86,7 +80,7 @@ function renderMap() {
   const bounds = [];
 
   originalShops.forEach(shop => {
-    if (!shop.lat || !shop.lng) return;
+    if (shop.lat == null || shop.lng == null) return;
     if (pref !== "ALL" && shop.pref !== pref) return;
     if (!matchMachineFilter(shop.machines, filters)) return;
     if (keyword && !shop.name.toLowerCase().includes(keyword)) return;
@@ -172,21 +166,23 @@ fetch("diff.json")
   .then(d => {
     diffInfo = d;
 
+    addedIds = new Set(d.added.map(s => s.id));
+    changedIds = new Set(d.machine_changed.map(s => s.id));
+
     if (d.has_update) {
       document.getElementById("updateNotice").style.display = "block";
 
       const lines = [];
-      if (d.added.length > 0) {
-        lines.push(`追加店舗: ${d.added.length}`);
-      }
-      if (d.machine_changed.length > 0) {
-        lines.push(`台数変更: ${d.machine_changed.length}`);
-      }
+      if (d.added.length > 0) lines.push(`追加店舗: ${d.added.length}`);
+      if (d.machine_changed.length > 0) lines.push(`台数変更: ${d.machine_changed.length}`);
 
-      document.getElementById("updateDetails").textContent =
-        lines.join(" / ");
+      document.getElementById("updateDetails").textContent = lines.join(" / ");
       document.getElementById("updateDetails").style.display = "block";
     }
+
+    renderMap();
   });
+
+
 
 
