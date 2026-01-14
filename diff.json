@@ -1,7 +1,28 @@
 {
-  "date": "2026-01-13",
-  "has_update": false,
-  "added": [],
+  "date": "2026-01-14",
+  "has_update": true,
+  "added": [
+    {
+      "id": "三重県|戸田家|34.488469|136.841406",
+      "name": "戸田家",
+      "address": "三重県 鳥羽市 鳥羽 1-24-26　戸田家内ゲームコーナー",
+      "pref": "三重県",
+      "machines": 1,
+      "lat": 34.488469,
+      "lng": 136.841406,
+      "area": "JP-24"
+    },
+    {
+      "id": "徳島県|HapipiLand徳島|34.074591|134.55089",
+      "name": "HapipiLand徳島",
+      "address": "徳島県 徳島市 寺島本町西 1-61　徳島駅クレメントプラザ4F",
+      "pref": "徳島県",
+      "machines": 2,
+      "lat": 34.074591,
+      "lng": 134.55089,
+      "area": "JP-36"
+    }
+  ],
   "removed": [],
   "machine_changed": []
 }
