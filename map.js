@@ -287,6 +287,7 @@ fetch("diff.json")
     // --- サマリー ---
     const lines = [];
     if (d.added?.length) lines.push(`🟢 追加 ${d.added.length}件`);
+    if (d.removed?.length) lines.push(`🔴 削除 ${d.removed.length}件`);
     if (d.machine_changed?.length) lines.push(`🟡 台数変更 ${d.machine_changed.length}件`);
     summary.textContent = lines.join(" / ");
 
@@ -296,6 +297,16 @@ fetch("diff.json")
     if (d.added?.length) {
       html.push("<strong>🟢 追加店舗</strong><ul>");
       d.added.forEach(s => {
+        html.push(
+          `<li>【${s.pref ?? "不明"}】${s.name}（${s.machines ?? "?"}台）</li>`
+        );
+      });
+      html.push("</ul>");
+    }
+
+    if (d.removed?.length) {
+      html.push("<strong>🔴 削除店舗</strong><ul>");
+      d.removed.forEach(s => {
         html.push(
           `<li>【${s.pref ?? "不明"}】${s.name}（${s.machines ?? "?"}台）</li>`
         );
@@ -328,6 +339,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
