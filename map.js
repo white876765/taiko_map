@@ -169,6 +169,32 @@ function enableMapInteraction() {
   map.keyboard.enable();
 }
 
+function openUpdateUI() {
+  closeAllUIPanels();
+
+  const notice = document.getElementById("updateNotice");
+  const backdrop = document.getElementById("uiBackdrop");
+
+  notice.style.display = "block";
+  notice.classList.add("active");
+
+  backdrop.style.display = "block";
+
+  disableMapInteraction();
+}
+
+function closeUpdateUI() {
+  const notice = document.getElementById("updateNotice");
+  const backdrop = document.getElementById("uiBackdrop");
+
+  notice.style.display = "none";
+  notice.classList.remove("active");
+
+  backdrop.style.display = "none";
+
+  enableMapInteraction();
+}
+
 function closeMobileUI() {
   if (window.innerWidth >= 768) return;
 
@@ -179,7 +205,7 @@ function closeMobileUI() {
 
   const details = document.getElementById("updateDetails");
   const toggle = document.getElementById("updateToggle");
-  if (details && details.style.display === "block") {
+  if (details && details.style.display === "") {
     details.style.display = "none";
     if (toggle) toggle.textContent = "▶ 表示する";
   }
@@ -207,9 +233,9 @@ document.getElementById("toggleControls").onclick = e => {
   e.stopPropagation(); // 地図クリックに伝播させない
 
   const c = document.getElementById("controls");
-  const open = c.style.display === "block";
+  const open = c.style.display === "";
 
-  c.style.display = open ? "none" : "block";
+  c.style.display = open ? "none" : "";
 
   if (window.innerWidth < 768) {
     open ? enableMapInteraction() : disableMapInteraction();
@@ -220,9 +246,9 @@ document.getElementById("updateDetails").onclick = () => {
   const list = document.getElementById("updateList");
   const header = document.getElementById("updateDetails");
 
-  const opened = list.style.display === "block";
+  const opened = list.style.display === "";
 
-  list.style.display = opened ? "none" : "block";
+  list.style.display = opened ? "none" : "";
   header.textContent = opened ? "▶ 表示する" : "▼ 閉じる";
 };
 
@@ -230,15 +256,23 @@ document.getElementById("updateToggle").onclick = e => {
   e.stopPropagation();
 
   const details = document.getElementById("updateDetails");
-  const open = details.style.display === "block";
+  const open = details.style.display === "";
 
-  details.style.display = open ? "none" : "block";
+  details.style.display = open ? "none" : "";
   e.target.textContent = open ? "▶ 表示する" : "▼ 閉じる";
 
   if (window.innerWidth < 768) {
     open ? enableMapInteraction() : disableMapInteraction();
   }
 };
+
+document.getElementById("uiBackdrop").addEventListener("click", () => {
+  closeUpdateUI();
+});
+
+document.getElementById("updateNotice").addEventListener("click", e => {
+  e.stopPropagation();
+});
 
 // ===== JSON 読み込み =====
 fetch("data/shops_latest.json")
@@ -282,7 +316,8 @@ fetch("diff.json")
     const details = document.getElementById("updateDetails");
     const toggle = document.getElementById("updateToggle");
 
-    notice.style.display = "block";
+    // notice.style.display = "block";
+    openUpdateUI();
 
     // --- サマリー ---
     const lines = [];
@@ -339,6 +374,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
