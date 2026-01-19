@@ -118,29 +118,6 @@ function renderMap() {
   }
 }
 
-function renderUpdateList(title, items, renderLine) {
-  if (!items || items.length === 0) return "";
-
-  const visible = items.slice(0, MAX_SHOW);
-  const hiddenCount = items.length - visible.length;
-
-  let html = `<div><strong>${title}</strong></div>`;
-  html += `<div class="update-toggle">▶ 表示する</div>`;
-  html += `<div class="update-list">`;
-  html += `<ul style="margin:4px 0 6px 16px;padding:0;">`;
-
-  visible.forEach(i => {
-    html += `<li>${renderLine(i)}</li>`;
-  });
-
-  if (hiddenCount > 0) {
-    html += `<li>…他 ${hiddenCount} 件</li>`;
-  }
-
-  html += `</ul></div>`;
-  return html;
-}
-
 map.on("click", () => {
   closeMobileUI();
 });
@@ -214,16 +191,6 @@ document.getElementById("toggleControls").onclick = e => {
   if (window.innerWidth < 768) {
     open ? enableMapInteraction() : disableMapInteraction();
   }
-};
-
-document.getElementById("updateDetails").onclick = () => {
-  const list = document.getElementById("updateList");
-  const header = document.getElementById("updateDetails");
-
-  const opened = list.style.display === "";
-
-  list.style.display = opened ? "none" : "";
-  header.textContent = opened ? "▶ 表示する" : "▼ 閉じる";
 };
 
 document.getElementById("updateToggle").onclick = e => {
@@ -339,6 +306,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
