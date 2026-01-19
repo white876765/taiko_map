@@ -48,14 +48,6 @@ html, body {
   font-weight: bold;
 }
 
-#uiBackdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  z-index: 1500; /* map < backdrop < active UI */
-  background: rgba(0,0,0,0); /* 透明 */
-}
-
 .mobile-only {
   display: none;
 }
@@ -176,7 +168,6 @@ html, body {
 </div>
 
 <div id="map"></div>
-<div id="uiBackdrop"></div>
 
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
@@ -185,6 +176,7 @@ html, body {
 
 </body>
 </html>
+
 
 
 
