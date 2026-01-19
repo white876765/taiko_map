@@ -119,6 +119,7 @@ function renderMap() {
 }
 
 map.on("click", () => {
+  closeUpdateUI();
   closeMobileUI();
 });
 
@@ -162,6 +163,28 @@ function closeMobileUI() {
   }
 
   enableMapInteraction();
+}
+
+function openUpdateUI() {
+  const ui = document.getElementById("updateNotice");
+
+  if (window.innerWidth < 768) {
+    ui.classList.add("open");
+    disableMapInteraction();
+  } else {
+    ui.style.display = "block";
+  }
+}
+
+function closeUpdateUI() {
+  const ui = document.getElementById("updateNotice");
+
+  if (window.innerWidth < 768) {
+    ui.classList.remove("open");
+    enableMapInteraction();
+  } else {
+    ui.style.display = "none";
+  }
 }
 
 // ===== イベント =====
@@ -249,7 +272,7 @@ fetch("diff.json")
     const details = document.getElementById("updateDetails");
     const toggle = document.getElementById("updateToggle");
 
-    notice.style.display = "block";
+    openUpdateUI();
 
     // --- サマリー ---
     const lines = [];
@@ -306,6 +329,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
