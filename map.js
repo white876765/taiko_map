@@ -176,15 +176,16 @@ function openUpdateUI() {
   }
 }
 
-function closeUpdateUI() {
-  const ui = document.getElementById("updateNotice");
+function closeMobileUI() {
+  if (window.innerWidth >= 768) return;
 
-  if (window.innerWidth < 768) {
-    ui.classList.remove("open");
-    enableMapInteraction();
-  } else {
-    ui.style.display = "none";
-  }
+  const controls = document.getElementById("controls");
+  if (controls) controls.style.display = "none";
+
+  const notice = document.getElementById("updateNotice");
+  if (notice) notice.classList.remove("open");
+
+  enableMapInteraction();
 }
 
 // ===== イベント =====
@@ -316,6 +317,12 @@ fetch("diff.json")
 
     details.innerHTML = html.join("");
 
+    // --- モバイルなら自動でスライド表示 ---
+    if (window.innerWidth < 768) {
+      notice.classList.add("open");
+      disableMapInteraction();
+    }
+
     // --- トグル（ここだけで制御） ---
     toggle.onclick = () => {
       const open = details.style.display === "block";
@@ -329,6 +336,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
