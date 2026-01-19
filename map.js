@@ -156,7 +156,7 @@ function closeMobileUI() {
 
   const details = document.getElementById("updateDetails");
   const toggle = document.getElementById("updateToggle");
-  if (details && details.style.display === "") {
+  if (details && details.style.display === "block") {
     details.style.display = "none";
     if (toggle) toggle.textContent = "▶ 表示する";
   }
@@ -181,12 +181,12 @@ document.getElementById("clearAll").onclick = () => {
 };
 
 document.getElementById("toggleControls").onclick = e => {
-  e.stopPropagation(); // 地図クリックに伝播させない
+  e.stopPropagation();
 
   const c = document.getElementById("controls");
-  const open = c.style.display === "";
+  const open = c.style.display === "block";
 
-  c.style.display = open ? "none" : "";
+  c.style.display = open ? "none" : "block";
 
   if (window.innerWidth < 768) {
     open ? enableMapInteraction() : disableMapInteraction();
@@ -306,6 +306,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
