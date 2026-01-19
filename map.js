@@ -119,8 +119,10 @@ function renderMap() {
 }
 
 map.on("click", () => {
-  closeUpdateUI();
-  closeMobileUI();
+  if (window.innerWidth < 768) {
+    closeUpdateUI();
+    closeMobileUI();
+  }
 });
 
 ["controls", "updateNotice"].forEach(id => {
@@ -163,7 +165,6 @@ function closeUpdateUI() {
 
   if (window.innerWidth < 768) {
     ui.classList.remove("open");
-    enableMapInteraction();
   } else {
     ui.style.display = "none";
   }
@@ -175,9 +176,7 @@ function closeMobileUI() {
   const controls = document.getElementById("controls");
   if (controls) controls.style.display = "none";
 
-  const notice = document.getElementById("updateNotice");
-  if (notice) notice.classList.remove("open");
-
+  closeUpdateUI();
   enableMapInteraction();
 }
 
@@ -316,19 +315,13 @@ fetch("diff.json")
       disableMapInteraction();
     }
 
-    // --- トグル（ここだけで制御） ---
-    toggle.onclick = () => {
-      const open = details.style.display === "block";
-      details.style.display = open ? "none" : "block";
-      toggle.textContent = open ? "▶ 表示する" : "▼ 閉じる";
-    };
-
     renderMap();
   })
   .catch(() => {
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
