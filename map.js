@@ -316,8 +316,7 @@ fetch("diff.json")
     const details = document.getElementById("updateDetails");
     const toggle = document.getElementById("updateToggle");
 
-    // notice.style.display = "block";
-    openUpdateUI();
+    notice.style.display = "block";
 
     // --- サマリー ---
     const lines = [];
@@ -374,6 +373,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
