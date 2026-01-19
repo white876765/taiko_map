@@ -120,8 +120,11 @@ function renderMap() {
 
 map.on("click", () => {
   if (window.innerWidth < 768) {
-    closeUpdateUI();
-    closeMobileUI();
+    const notice = document.getElementById("updateNotice");
+    if (notice.classList.contains("open")) {
+      closeUpdateUI();
+      closeMobileUI();
+    }
   }
 });
 
@@ -309,18 +312,13 @@ fetch("diff.json")
 
     details.innerHTML = html.join("");
 
-    // --- モバイルなら自動でスライド表示 ---
-    if (window.innerWidth < 768) {
-      notice.classList.add("open");
-      disableMapInteraction();
-    }
-
     renderMap();
   })
   .catch(() => {
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
