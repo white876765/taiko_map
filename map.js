@@ -147,24 +147,6 @@ function enableMapInteraction() {
   map.keyboard.enable();
 }
 
-function closeMobileUI() {
-  if (window.innerWidth >= 768) return;
-
-  const controls = document.getElementById("controls");
-  if (controls && controls.style.display === "block") {
-    controls.style.display = "none";
-  }
-
-  const details = document.getElementById("updateDetails");
-  const toggle = document.getElementById("updateToggle");
-  if (details && details.style.display === "block") {
-    details.style.display = "none";
-    if (toggle) toggle.textContent = "▶ 表示する";
-  }
-
-  enableMapInteraction();
-}
-
 function openUpdateUI() {
   const ui = document.getElementById("updateNotice");
 
@@ -173,6 +155,17 @@ function openUpdateUI() {
     disableMapInteraction();
   } else {
     ui.style.display = "block";
+  }
+}
+
+function closeUpdateUI() {
+  const ui = document.getElementById("updateNotice");
+
+  if (window.innerWidth < 768) {
+    ui.classList.remove("open");
+    enableMapInteraction();
+  } else {
+    ui.style.display = "none";
   }
 }
 
@@ -336,6 +329,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
