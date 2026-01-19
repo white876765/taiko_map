@@ -119,13 +119,10 @@ function renderMap() {
 }
 
 map.on("click", () => {
-  if (window.innerWidth < 768) {
-    const notice = document.getElementById("updateNotice");
-    if (notice.classList.contains("open")) {
-      closeUpdateUI();
-      closeMobileUI();
-    }
-  }
+  if (window.innerWidth >= 768) return;
+
+  closeUpdateUI();
+  closeMobileUI();
 });
 
 ["controls", "updateNotice"].forEach(id => {
@@ -154,23 +151,14 @@ function enableMapInteraction() {
 
 function openUpdateUI() {
   const ui = document.getElementById("updateNotice");
-
-  if (window.innerWidth < 768) {
-    ui.classList.add("open");
-    disableMapInteraction();
-  } else {
-    ui.style.display = "block";
-  }
+  ui.classList.add("open");
+  disableMapInteraction();
 }
 
 function closeUpdateUI() {
   const ui = document.getElementById("updateNotice");
-
-  if (window.innerWidth < 768) {
-    ui.classList.remove("open");
-  } else {
-    ui.style.display = "none";
-  }
+  ui.classList.remove("open");
+  enableMapInteraction();
 }
 
 function closeMobileUI() {
@@ -318,6 +306,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
