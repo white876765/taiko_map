@@ -169,32 +169,6 @@ function enableMapInteraction() {
   map.keyboard.enable();
 }
 
-function openUpdateUI() {
-  closeAllUIPanels();
-
-  const notice = document.getElementById("updateNotice");
-  const backdrop = document.getElementById("uiBackdrop");
-
-  notice.style.display = "block";
-  notice.classList.add("active");
-
-  backdrop.style.display = "block";
-
-  disableMapInteraction();
-}
-
-function closeUpdateUI() {
-  const notice = document.getElementById("updateNotice");
-  const backdrop = document.getElementById("uiBackdrop");
-
-  notice.style.display = "none";
-  notice.classList.remove("active");
-
-  backdrop.style.display = "none";
-
-  enableMapInteraction();
-}
-
 function closeMobileUI() {
   if (window.innerWidth >= 768) return;
 
@@ -265,14 +239,6 @@ document.getElementById("updateToggle").onclick = e => {
     open ? enableMapInteraction() : disableMapInteraction();
   }
 };
-
-document.getElementById("uiBackdrop").addEventListener("click", () => {
-  closeUpdateUI();
-});
-
-document.getElementById("updateNotice").addEventListener("click", e => {
-  e.stopPropagation();
-});
 
 // ===== JSON 読み込み =====
 fetch("data/shops_latest.json")
@@ -373,6 +339,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
