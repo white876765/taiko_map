@@ -121,7 +121,6 @@ function renderMap() {
 map.on("click", () => {
   if (window.innerWidth >= 768) return;
 
-  closeUpdateUI();
   closeMobileUI();
 });
 
@@ -149,16 +148,10 @@ function enableMapInteraction() {
   map.keyboard.enable();
 }
 
-function openUpdateUI() {
-  const ui = document.getElementById("updateNotice");
-  ui.classList.add("open");
-  disableMapInteraction();
-}
-
-function closeUpdateUI() {
-  const ui = document.getElementById("updateNotice");
-  ui.classList.remove("open");
-  enableMapInteraction();
+// 更新UIは「存在するだけで表示」
+function showUpdateNotice() {
+  const notice = document.getElementById("updateNotice");
+  notice.style.display = "block";
 }
 
 function closeMobileUI() {
@@ -204,14 +197,10 @@ document.getElementById("updateToggle").onclick = e => {
   e.stopPropagation();
 
   const details = document.getElementById("updateDetails");
-  const open = details.style.display === "";
+  const open = details.style.display === "block";
 
-  details.style.display = open ? "none" : "";
+  details.style.display = open ? "none" : "block";
   e.target.textContent = open ? "▶ 表示する" : "▼ 閉じる";
-
-  if (window.innerWidth < 768) {
-    open ? enableMapInteraction() : disableMapInteraction();
-  }
 };
 
 // ===== JSON 読み込み =====
@@ -256,7 +245,7 @@ fetch("diff.json")
     const details = document.getElementById("updateDetails");
     const toggle = document.getElementById("updateToggle");
 
-    openUpdateUI();
+    showUpdateNotice();
 
     // --- サマリー ---
     const lines = [];
@@ -306,6 +295,7 @@ fetch("diff.json")
     console.log("diff.json not found");
     renderMap();
   });
+
 
 
 
