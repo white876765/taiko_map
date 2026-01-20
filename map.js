@@ -12,7 +12,6 @@ const PREF_ORDER = [
 ];
 
 let originalShops = [];
-let diffInfo = null;
 
 // ===== Map 初期化 =====
 const map = L.map("map", { zoomControl: false }).setView([36.5, 138], 5);
@@ -46,8 +45,6 @@ const changedIcon = L.icon({
 
 let addedIds = new Set();
 let changedIds = new Set();
-
-const MAX_SHOW = 20;
 
 // ===== フィルタ系 =====
 function getSelectedFilters() {
@@ -148,19 +145,12 @@ function enableMapInteraction() {
   map.keyboard.enable();
 }
 
-// 更新UIは「存在するだけで表示」
-function showUpdateNotice() {
-  const notice = document.getElementById("updateNotice");
-  notice.style.display = "block";
-}
-
 function closeMobileUI() {
   if (window.innerWidth >= 768) return;
 
   const controls = document.getElementById("controls");
   if (controls) controls.style.display = "none";
 
-  closeUpdateUI();
   enableMapInteraction();
 }
 
@@ -235,54 +225,61 @@ fetch("diff.json")
   .then(d => {
     diffInfo = d;
 
-    addedIds = new Set((d.added || []).map(s => s.id));
-    changedIds = new Set((d.machine_changed || []).map(s => s.id));
-
-    if (!d.has_update) return;
-
-    const notice = document.getElementById("updateNotice");
+    const notice  = document.getElementById("updateNotice");
     const summary = document.getElementById("updateSummary");
     const details = document.getElementById("updateDetails");
-    const toggle = document.getElementById("updateToggle");
+    const toggle  = document.getElementById("updateToggle");
 
-    showUpdateNotice();
+    // --- 実質的な更新判定 ---
+    const hasRealUpdate =
+      (d.added?.length ?? 0) > 0 ||
+      (d.removed?.length ?? 0) > 0 ||
+      (d.machine_changed?.length ?? 0) > 0;
+
+    if (!hasRealUpdate) {
+      // ★ 更新なし → 完全に非表示
+      notice.style.display = "none";
+      summary.textContent = "";
+      details.innerHTML = "";
+      return;
+    }
+
+    // --- 更新あり ---
+    notice.style.display = "block";
+
+    addedIds   = new Set(d.added.map(s => s.id));
+    changedIds = new Set(d.machine_changed.map(s => s.id));
 
     // --- サマリー ---
     const lines = [];
-    if (d.added?.length) lines.push(`🟢 追加 ${d.added.length}件`);
-    if (d.removed?.length) lines.push(`🔴 削除 ${d.removed.length}件`);
-    if (d.machine_changed?.length) lines.push(`🟡 台数変更 ${d.machine_changed.length}件`);
+    if (d.added.length) lines.push(`🟢 追加 ${d.added.length}件`);
+    if (d.removed.length) lines.push(`🔴 削除 ${d.removed.length}件`);
+    if (d.machine_changed.length) lines.push(`🟡 台数変更 ${d.machine_changed.length}件`);
     summary.textContent = lines.join(" / ");
 
-    // --- 一覧（省略なし・全件表示） ---
+    // --- 一覧 ---
     const html = [];
 
-    if (d.added?.length) {
+    if (d.added.length) {
       html.push("<strong>🟢 追加店舗</strong><ul>");
       d.added.forEach(s => {
-        html.push(
-          `<li>【${s.pref ?? "不明"}】${s.name}（${s.machines ?? "?"}台）</li>`
-        );
+        html.push(`<li>【${s.pref ?? "不明"}】${s.name}</li>`);
       });
       html.push("</ul>");
     }
 
-    if (d.removed?.length) {
+    if (d.removed.length) {
       html.push("<strong>🔴 削除店舗</strong><ul>");
       d.removed.forEach(s => {
-        html.push(
-          `<li>【${s.pref ?? "不明"}】${s.name}（${s.machines ?? "?"}台）</li>`
-        );
+        html.push(`<li>【${s.pref ?? "不明"}】${s.name}</li>`);
       });
       html.push("</ul>");
     }
 
-    if (d.machine_changed?.length) {
+    if (d.machine_changed.length) {
       html.push("<strong>🟡 台数変更</strong><ul>");
       d.machine_changed.forEach(s => {
-        html.push(
-          `<li>【${s.pref ?? "不明"}】${s.name}：${s.before ?? "?"} → ${s.after ?? "?"}</li>`
-        );
+        html.push(`<li>【${s.pref ?? "不明"}】${s.name}：${s.before} → ${s.after}</li>`);
       });
       html.push("</ul>");
     }
@@ -293,20 +290,9 @@ fetch("diff.json")
   })
   .catch(() => {
     console.log("diff.json not found");
+    document.getElementById("updateNotice").style.display = "none";
     renderMap();
   });
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
